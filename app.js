@@ -4,6 +4,18 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const _ = require("lodash");
+const mongoose = require("mongoose");
+
+mongoose.connect("mongodb://localhost:27017/dailyJournalDB");
+
+const dailyjournalschema = {
+  title: String,
+  post: String,
+};
+
+const Post = mongoose.model("Post", dailyjournalschema);
+
+// day1.save();
 
 const homeStartingContent =
   "Lacus vel facilisis volutpat est velit egestas dui id ornare. Semper auctor neque vitae tempus quam. Sit amet cursus sit amet dictum sit amet justo. Viverra tellus in hac habitasse. Imperdiet proin fermentum leo vel orci porta. Donec ultrices tincidunt arcu non sodales neque sodales ut. Mattis molestie a iaculis at erat pellentesque adipiscing. Magnis dis parturient montes nascetur ridiculus mus mauris vitae ultricies. Adipiscing elit ut aliquam purus sit amet luctus venenatis lectus. Ultrices vitae auctor eu augue ut lectus arcu bibendum at. Odio euismod lacinia at quis risus sed vulputate odio ut. Cursus mattis molestie a iaculis at erat pellentesque adipiscing.";
@@ -12,7 +24,7 @@ const aboutContent =
 const contactContent =
   "Scelerisque eleifend donec pretium vulputate sapien. Rhoncus urna neque viverra justo nec ultrices. Arcu dui vivamus arcu felis bibendum. Consectetur adipiscing elit duis tristique. Risus viverra adipiscing at in tellus integer feugiat. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Consequat interdum varius sit amet mattis. Iaculis nunc sed augue lacus. Interdum posuere lorem ipsum dolor sit amet consectetur adipiscing elit. Pulvinar elementum integer enim neque. Ultrices gravida dictum fusce ut placerat orci nulla. Mauris in aliquam sem fringilla ut morbi tincidunt. Tortor posuere ac ut consequat semper viverra nam libero.";
 
-var homePagePostArray = [];
+// var homePagePostArray = [];
 
 const app = express();
 
@@ -22,9 +34,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 app.get("/", function (req, res) {
-  res.render("home", {
-    homeStartingContent: homeStartingContent,
-    postArray: homePagePostArray,
+  Post.find({}).then(function (posts) {
+    res.render("home", {
+      homeStartingContent: homeStartingContent,
+      postArray: posts,
+    });
   });
 });
 
@@ -49,34 +63,23 @@ app.get("/compose", function (req, res) {
 });
 
 app.post("/compose", function (req, res) {
-  const postContent = {
+  const postContent = new Post({
     title: req.body.title,
     post: req.body.post,
-  };
+  });
+  postContent.save();
 
-  homePagePostArray.push(postContent);
   res.redirect("/");
 });
 
-// app.get("/post", function (req, res) {
-//   res.render("post", { postArray: homePagePostArray });
-// });
+app.get("/posts/:postId", function (req, res) {
+  const requestedPostId = req.params.postId.trim();
 
-app.get("/posts/:postName", function (req, res) {
-  // for (let i = 0; i < homePagePostArray.length; i++) {                // general approach
-  //   if (homePagePostArray[i].title === req.params.postName) {
-  //     console.log("Match Found");
-  //   }
-  // }
-
-  homePagePostArray.forEach(function (post) {
-    var postName = req.params.postName;
-    if (_.lowerCase(post.title) === _.lowerCase(postName)) {
-      res.render("post", {
-        title: post.title,
-        description: post.post,
-      });
-    }
+  Post.findOne({ _id: requestedPostId }).then(function (post) {
+    res.render("post", {
+      title: post.title,
+      description: post.post,
+    });
   });
 });
 
