@@ -6,7 +6,13 @@ const ejs = require("ejs");
 const _ = require("lodash");
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb://localhost:27017/dailyJournalDB");
+mongoose.connect("mongodb://localhost:27017/dailyJournalDB");       // this is connect to local mongodb ,you can connect it to mongo atlas by replacing the driver link 
+
+ // -----------  error ----------- (if below error appears then start mongosh shell link in cmd to connect atlas)
+  //   const err = new MongooseError(message);
+  //   ^
+  // MongooseError: Operation `posts.find()` buffering timed out after 10000ms
+
 
 const dailyjournalschema = {
   title: String,
